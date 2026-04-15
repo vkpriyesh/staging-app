@@ -22,15 +22,17 @@ jobs:
           git config --global user.email "bot@yourdomain.com"
           git config --global user.name "Sync Bot"
 
-          git clone https://x-access-token:${GH_PAT}@github.com/${PROD_REPO}.git prod-repo
-          cd prod-repo
+          SRC="$GITHUB_WORKSPACE"
+          CLONE_DIR="$RUNNER_TEMP/prod-repo"
+          git clone https://x-access-token:${GH_PAT}@github.com/${PROD_REPO}.git "$CLONE_DIR"
+          cd "$CLONE_DIR"
 
           BRANCH="sync/staging-$(date +%Y%m%d-%H%M%S)"
           git checkout -b $BRANCH
 
-          rsync -av --exclude='.git' --exclude='node_modules' --exclude='.github' ../ ./
+          rsync -av --delete --exclude='.git' --exclude='.github' --exclude='node_modules' "$SRC/" ./
 
-          git add .
+          git add -A
           git diff --staged --quiet || git commit -m "sync: from staging $(date +%Y-%m-%d)"
           git push origin $BRANCH
 
