@@ -33,7 +33,12 @@ jobs:
           rsync -av --delete --exclude='.git' --exclude='.github' --exclude='node_modules' "$SRC/" ./
 
           git add -A
-          git diff --staged --quiet || git commit -m "sync: from staging $(date +%Y-%m-%d)"
+          if git diff --staged --quiet; then
+            echo "No changes to sync — staging and prod are in sync."
+            exit 0
+          fi
+
+          git commit -m "sync: from staging $(date +%Y-%m-%d)"
           git push origin $BRANCH
 
           gh pr create \
